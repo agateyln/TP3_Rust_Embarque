@@ -19,7 +19,7 @@ async fn main(_spawner: Spawner) {
 
     loop {
         let state = encoder.poll();
-        info!(
+        info!( 
             "encoder: position={} pressed={} direction={:?}",
             state.position,
             state.pressed,

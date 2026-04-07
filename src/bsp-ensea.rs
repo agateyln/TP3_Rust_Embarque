@@ -6,6 +6,7 @@ pub struct Board {
     pub bargraph_pins: BargraphPins,
     pub gamepad_pins: GamepadPins,
     pub encoder_pins: EncoderPins,
+    pub stepper_pins: StepperPins,
 }
 
 pub struct BargraphPins {
@@ -30,6 +31,14 @@ pub struct GamepadPins {
 pub struct EncoderPins {
     pub qei: Qei<'static, peripherals::TIM2>,
     pub button: Input<'static>,
+}
+
+pub struct StepperPins {
+    pub dir: Output<'static>,
+    pub step: Output<'static>,
+    pub enable: Output<'static>,
+    pub microstep1: Output<'static>,
+    pub microstep2: Output<'static>,
 }
 
 impl BargraphPins {
@@ -84,10 +93,19 @@ impl Board {
             button: Input::new(p.PA15, Pull::Up),
         };
 
+        let stepper_pins = StepperPins {
+            dir: Output::new(p.PA7, Level::Low, Speed::Low),
+            step: Output::new(p.PA6, Level::Low, Speed::Low),
+            enable: Output::new(p.PA12, Level::Low, Speed::Low),
+            microstep1: Output::new(p.PA11, Level::Low, Speed::Low),
+            microstep2: Output::new(p.PB12, Level::Low, Speed::Low),
+        };
+
         Self {
             bargraph_pins,
             gamepad_pins,
             encoder_pins,
+            stepper_pins,
         }
     }
 }

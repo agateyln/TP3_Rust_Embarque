@@ -3,6 +3,7 @@
 pub mod bargraph;
 pub mod encoder;
 pub mod gamepad;
+pub mod stepper;
 
 #[cfg(target_arch = "arm")]
 #[path = "bsp-ensea.rs"]
