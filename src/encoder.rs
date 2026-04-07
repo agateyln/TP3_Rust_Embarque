@@ -32,7 +32,7 @@ impl<'d, BUTTON> Encoder<'d, BUTTON>
 where
     BUTTON: InputPin<Error = Infallible>,
 {
-    const COUNTER_MAX: u32 = 10_000;
+    const COUNTER_MAX: u32 = 10_000; // large enough to avoid overflow 
 
     pub fn new(qei: Qei<'d, peripherals::TIM2>, button: BUTTON) -> Self {
         let mut encoder = Self { qei, button };
