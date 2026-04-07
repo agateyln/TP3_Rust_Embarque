@@ -2,6 +2,12 @@ use core::convert::{AsMut, AsRef};
 use core::marker::PhantomData;
 use embedded_hal::digital::{ErrorType, OutputPin};
 
+use core::sync::atomic:: Ordering;
+
+
+//Variables partagées
+use crate::shared::{BARGRAPH_LEVEL,BARGRAPH_SIGNAL };
+
 #[derive(Debug)]
 pub enum BargraphError<E> {
 	InvalidRange,
@@ -74,4 +80,26 @@ where
 	{
 		self.pins.as_ref()
 	}
+
+
+	///Méthode asynchrone qui sera notifiée à chaque changement de valeur de BARGRAPH_SIGNAL.
+	pub async fn wait_and_update( &mut self) -> Result<(), BargraphError<<PIN as ErrorType>::Error>> {
+		BARGRAPH_SIGNAL.wait().await ;
+		let value = BARGRAPH_LEVEL.load(Ordering::Relaxed) as i32; //Relaxed : seul la mémoir directement utilisée est synchronisé
+		self.set_value(value)?;
+		BARGRAPH_SIGNAL.reset();
+
+		Ok(())
+
+	}
+
+	pub fn update_value(new_value : u32) -> Result<(), BargraphError<<PIN as ErrorType>::Error>> {
+		BARGRAPH_LEVEL.store(new_value, Ordering::Relaxed);
+		BARGRAPH_SIGNAL.signal(()); //Notifie le signal
+		Ok(())
+	}
+
+
+
 }
+
