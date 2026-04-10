@@ -6,6 +6,8 @@ use tp3::bsp_ensea::Board;
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
 use tp3::bargraph_task::bargraph_task;
+use defmt_rtt as _;
+use panic_probe as _;
 
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
@@ -20,12 +22,12 @@ async fn main(_spawner: Spawner) {
 
     loop {
         for value in (0..=100).step_by(10) {
-            Bargraph::update_value(value).ok(); // simple, pas de générique
+            Bargraph::<8>::update_value(value).ok(); // simple, pas de générique
             Timer::after(Duration::from_millis(200)).await;
         }
         for value in (0..=100).rev().step_by(10) {
-            Bargraph::update_value(value).ok();
-            Timer::after(Duration::from_millis(200)).await;
+            Bargraph::<8>::update_value(value).ok();
+            Timer::after(Duration::from_millis(800)).await;
         }
     }
 }

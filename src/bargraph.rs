@@ -1,6 +1,5 @@
-use core::convert::{AsMut, AsRef};
-use core::marker::PhantomData;
-use embedded_hal::digital::{ErrorType, OutputPin};
+use heapless::String;
+use embassy_stm32::gpio::{Output};
 
 use core::sync::atomic:: Ordering;
 
@@ -14,30 +13,25 @@ pub enum BargraphError<E> {
 	Pin(E),
 }
 
-pub struct Bargraph<PINS, PIN> {
-	pins: PINS,
+pub struct Bargraph<const N:usize> {
+	pins: [Output<'static>;N],
 	min: i32,
 	max: i32,
-	_pin: PhantomData<PIN>,
 }
 
-impl<PINS, PIN> Bargraph<PINS, PIN>
-where
-	PINS: AsMut<[PIN]>,
-	PIN: OutputPin + ErrorType,
-{
-	pub fn new(pins: PINS) -> Self {
+impl<const N: usize> Bargraph<N> {
+	pub fn new(pins: [Output<'static>; N]) -> Self {
 		Self {
 			pins,
 			min: 0,
 			max: 100,
-			_pin: PhantomData,
 		}
 	}
 
-	pub fn set_range(&mut self, min: i32, max: i32) -> Result<(), BargraphError<<PIN as ErrorType>::Error>> {
+	pub fn set_range(&mut self, min: i32, max: i32) -> Result<(), String<64>> {
 		if min >= max {
-			return Err(BargraphError::InvalidRange);
+			self.min=min;
+			self.max=min;
 		}
 
 		self.min = min;
@@ -45,9 +39,8 @@ where
 		Ok(())
 	}
 
-	pub fn set_value(&mut self, value: i32) -> Result<(), BargraphError<<PIN as ErrorType>::Error>> {
-		let pins = self.pins.as_mut();
-		let led_count = pins.len();
+	pub fn set_value(&mut self, value: i32) -> Result<(), String<64>> {
+		let led_count = self.pins.len();
 
 		if led_count == 0 {
 			return Ok(());
@@ -59,11 +52,11 @@ where
 
 		let leds_on = ((relative * led_count as i64) / range) as usize;
 
-		for (index, pin) in pins.iter_mut().enumerate() {
+		for (index, pin) in self.pins.iter_mut().enumerate() {
 			if index < leds_on {
-				pin.set_high().map_err(BargraphError::Pin)?;
+				pin.set_high();
 			} else {
-				pin.set_low().map_err(BargraphError::Pin)?;
+				pin.set_low();
 			}
 		}
 
@@ -74,16 +67,9 @@ where
 		(self.min, self.max)
 	}
 
-	pub fn pins(&self) -> &[PIN]
-	where
-		PINS: AsRef<[PIN]>,
-	{
-		self.pins.as_ref()
-	}
-
 
 	///Méthode asynchrone qui sera notifiée à chaque changement de valeur de BARGRAPH_SIGNAL.
-	pub async fn wait_and_update( &mut self) -> Result<(), BargraphError<<PIN as ErrorType>::Error>> {
+	pub async fn wait_and_update( &mut self) -> Result<(),  String<64>> {
 		BARGRAPH_SIGNAL.wait().await ;
 		let value = BARGRAPH_LEVEL.load(Ordering::Relaxed) as i32; //Relaxed : seul la mémoir directement utilisée est synchronisé
 		self.set_value(value)?;
@@ -93,7 +79,7 @@ where
 
 	}
 
-	pub fn update_value(new_value : u32) -> Result<(), BargraphError<<PIN as ErrorType>::Error>> {
+	pub fn update_value(new_value : u32) -> Result<(), String<64>> {
 		BARGRAPH_LEVEL.store(new_value, Ordering::Relaxed);
 		BARGRAPH_SIGNAL.signal(()); //Notifie le signal
 		Ok(())

@@ -2,9 +2,8 @@
 
 use crate::bargraph::Bargraph;
 use embassy_executor::task;
-use embassy_stm32::gpio::Output;
 #[task]
-pub async fn bargraph_task(mut bargraph: Bargraph<[Output<'static>; 8], Output<'static>>) {
+pub async fn bargraph_task(mut bargraph: Bargraph<8>) {
     loop {
         let _ = bargraph.wait_and_update().await;
     }
