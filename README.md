@@ -8,6 +8,7 @@ Développer un firmware embarqué pour une carte afin d'utiliser plusieurs péri
 - `src/gamepad.rs` : driver gamepad
 - `src/encoder.rs` : driver encodeur avec `Qei` + accès PAC (`TIM2`) pour la position
 - `src/bsp-ensea.rs` : mapping matériel dans `Board`
+- `src/bargraph_task.rs` : gestions des tâches
 - `examples/bargraph_example.rs` : démonstration bargraph
 - `examples/gamepad_example.rs` : démonstration gamepad avec logs `defmt`
 - `examples/encoder_example.rs` : démonstration encodeur avec logs `defmt`
